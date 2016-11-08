@@ -23,7 +23,7 @@
   </head>
   <body>
     <section id='abstract'>
-      <p>This document describes a common REST API and data model for the Web of Things. The Thing Description provides a vocabularly for describing physical devices connected to the World Wide Web, with a default JSON encoding. The WoT REST API provides a web services based programming interface for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state.</p>
+      <p>This document describes a common data model and REST API for the Web of Things. The Thing Description provides a vocabularly for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding. The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state.</p>
     </section>
     <section id='sotd'>
       <p>
@@ -34,10 +34,12 @@
       <h2>Introduction</h2>
       <p>The goal of the Web of Things is to extend the web of pages into a web of things by giving connected devices URLs on the World Wide Web. This will allow the web to be used as a unifying application layer for a decentralized Internet of Things.</p>
       <p>Whilst web technologies are already in widespread use on the Internet of Things, this is currently done with mostly proprietary data formats and APIs which require per-vendor integrations to make devices interoperable. In order to promote ad-hoc interoperability on the Internet of Things a shared vocabularly and common API is needed.</p>
-      <p>In this document we propose a common REST API and data model for the Web of Things.</p>
+      <p>In this document we propose a common data model and REST API for the Web of Things.</p>
     </section>
     <section>
-      <h2>Thing Description</h2>
+      <h2>Web Thing Description</h2>
+      <p>The Thing Description provides a vocabularly for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding.</p>
+      <p><strong>Example</strong></p>
       <div class="example">
         <pre>
 {
@@ -94,16 +96,18 @@
       </section>
     </section>
     <section>
-      <h2>WoT REST API</h2>
+      <h2>Web Thing API</h2>
+        <p>The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state.</p>
       <section>
         <h3>Thing Resource</h3>
-          <strong>Request</strong>
-          <div class="example">
-            <pre>GET http://mythingserver.com/things/pi</pre>
-          </div>
-          <strong>Response</strong>
-          <div class="example">
-            <pre>200 OK
+        <p><strong>Example: Get a description of a Thing</strong></p>
+        <em>Request</em>
+        <div class="example">
+          <pre>GET http://mythingserver.com/things/pi</pre>
+        </div>
+        <em>Response</em>
+        <div class="example">
+          <pre>200 OK
 {
   "name":"WoT Pi",
   "description": "A WoT-connected Raspberry Pi"
@@ -140,9 +144,72 @@
       </section>
       <section>
         <h3>Properties Resource</h3>
+        <p><strong>Example: Get a temperature value</strong></p>
+        <em>Request</em>
+        <div class="example">
+          <pre>GET http://mythingserver.com/things/pi/temperature</pre>
+        </div>
+        <em>Response</em>
+        <div class="example">
+          <pre>
+200 OK
+{
+  "name": "temperature"
+  "type": "integer"
+  "unit": "celcius"
+  "value": 21
+}
+          </pre>
+        </div>
+        <p><strong>Example: Turn on an LED</strong></p>
+        <em>Request</em>
+        <div class="example">
+          <pre>
+PUT http://mythingserver.com/things/pi/led
+{
+  "name": "led",
+  "type": "boolean",
+  "value": true
+}
+          </pre>
+        </div>
+        <em>Response</em>
+        <div class="example">
+          <pre>
+200 OK
+{
+  "name": "led",
+  "type": "boolean",
+  "value": true
+}
+          </pre>
+        </example>
       </section>
       <section>
         <h3>Actions Resource</h3>
+        <p><strong>Example: Reboot a device</strong></p>
+        <p>Action resources are POSTed to an actions queue to be executed.</p>
+        <em>Request</em>
+        <div class="example">
+          <pre>
+
+POST http://mythingserver.com/actions
+{
+  "name": "reboot"
+}
+          </pre>
+        </div>
+
+        <em>Response</em>
+        <div class="example">
+          <pre>
+201 CREATED
+{
+  "name": "reboot"
+  "href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655"
+}
+          </pre>
+        </div>
       </section>
       <section>
         <h3>Things Resource</h3>
