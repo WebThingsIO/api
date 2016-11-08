@@ -3,15 +3,17 @@
   <head>
     <meta charset='utf-8'>
     <title>Web of Things</title>
-    <script 
-     src='https://www.w3.org/Tools/respec/respec-w3c-common' 
+    <script
+     src='https://www.w3.org/Tools/respec/respec-w3c-common'
      class='remove'></script>
     <script class='remove'>
       var respecConfig = {
         specStatus: "Member-SUBM",
         editors: [{
           name: "Ben Francis",
-          url: "http://mozilla.com",
+          company: "Mozilla Corporation",
+          companyURL: "https://mozilla.com/",
+          w3cid: 51527
         }],
         processVersion: 2015,
         edDraftURI: "http://benfrancis.github.io/wot",
@@ -21,53 +23,134 @@
   </head>
   <body>
     <section id='abstract'>
-      <p>
-        This is required.
-      </p>
+      <p>This document describes a common REST API and data model for the Web of Things. The Thing Description provides a vocabularly for describing physical devices connected to the World Wide Web, with a default JSON encoding. The WoT REST API provides a web services based programming interface for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state.</p>
     </section>
     <section id='sotd'>
       <p>
-        This is required.
+
       </p>
     </section>
     <section>
+      <h2>Introduction</h2>
+      <p>The goal of the Web of Things is to extend the web of pages into a web of things by giving connected devices URLs on the World Wide Web. This will allow the web to be used as a unifying application layer for a decentralized Internet of Things.</p>
+      <p>Whilst web technologies are already in widespread use on the Internet of Things, this is currently done with mostly proprietary data formats and APIs which require per-vendor integrations to make devices interoperable. In order to promote ad-hoc interoperability on the Internet of Things a shared vocabularly and common API is needed.</p>
+      <p>In this document we propose a common REST API and data model for the Web of Things.</p>
+    </section>
+    <section>
       <h2>Thing Description</h2>
-      
       <div class="example">
-       <pre class="idl">
+        <pre>
 {
   "name":"WoT Pi",
-  “description”: “A WoT-connected Raspberry Pi”
-  “properties”: [
+  "description": "A WoT-connected Raspberry Pi"
+  "properties": [
     {
-      “name”: “temperature”,
-      “type”: “integer”,
-      “unit”: “celcius”,
-      “description”: “An ambient temperature sensor”
-      “href”: “/things/pi/temperature”
+      "name": "temperature",
+      "type": "integer",
+      "unit": "celcius",
+      "description": "An ambient temperature sensor"
+      "href": "/things/pi/temperature"
     },
     {
-      “name”: “humidity”,
-      “type”: “integer”,
-      “unit”: “percent”,
-      “href”: “/things/pi/humidity
+      "name": "humidity",
+      "type": "integer",
+      "unit": "percent",
+      "href": "/things/pi/humidity"
     },
     {
-      “name”: “led”,
-      “type”: “boolean”,
-      “description”: “A red LED”,
-      “href”: “/things/pi/led”
-    } 
+      "name": "led",
+      "type": "boolean",
+      "description": "A red LED",
+      "href": "/things/pi/led"
+    }
   ],
-  “actions”: [
+  "actions": [
     {
-      “name”: “reboot”
-      “description”: “Reboot the device”
+      "name": "reboot"
+      "description": "Reboot the device"
     }
   ]
 }
-      </pre>
-     </div>
+        </pre>
+      </div>
+
+      <section>
+        <h3><code>name</code> member</h3>
+      </section>
+      <section>
+        <h3><code>description</code> member</h3>
+      </section>
+      <section>
+        <h3><code>properties</code> member</h3>
+      </section>
+      <section>
+        <h3><code>actions</code> member</h3>
+      </section>
+      <section>
+        <h3>Alternative Encodings</h3>
+      </section>
+      <section>
+        <h3>Semantic Extensions</h3>
+      </section>
+    </section>
+    <section>
+      <h2>WoT REST API</h2>
+      <section>
+        <h3>Thing Resource</h3>
+          <strong>Request</strong>
+          <div class="example">
+            <pre>GET http://mythingserver.com/things/pi</pre>
+          </div>
+          <strong>Response</strong>
+          <div class="example">
+            <pre>200 OK
+{
+  "name":"WoT Pi",
+  "description": "A WoT-connected Raspberry Pi"
+  "properties": [
+    {
+      "name": "temperature",
+      "type": "integer",
+      "unit": "celcius",
+      "description": "An ambient temperature sensor"
+      "href": "/things/pi/temperature"
+    },
+    {
+      "name": "humidity",
+      "type": "integer",
+      "unit": "percent",
+      "href": "/things/pi/humidity"
+    },
+    {
+      "name": "led",
+      "type": "boolean",
+      "description": "A red LED",
+      "href": "/things/pi/led"
+    }
+  ],
+  "actions": [
+    {
+      "name": "reboot"
+      "description": "Reboot the device"
+    }
+  ]
+}
+          </pre>
+        </div>
+      </section>
+      <section>
+        <h3>Properties Resource</h3>
+      </section>
+      <section>
+        <h3>Actions Resource</h3>
+      </section>
+      <section>
+        <h3>Things Resource</h3>
+      </section>
+      <section>
+        <h3>Subscriptions with WebSockets</h3>
+      </section>
     </section>
   </body>
 </html>
+
