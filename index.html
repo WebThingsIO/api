@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Web of Things</title>
+    <script 
+     src='https://www.w3.org/Tools/respec/respec-w3c-common' 
+     class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+        specStatus: "Member-SUBM",
+        editors: [{
+          name: "Ben Francis",
+          url: "http://mozilla.com",
+        }],
+        processVersion: 2015,
+        edDraftURI: "http://benfrancis.github.io/wot",
+        shortName: "WoT"
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+        This is required.
+      </p>
+    </section>
+    <section id='sotd'>
+      <p>
+        This is required.
+      </p>
+    </section>
+    <section>
+      <h2>Thing Description</h2>
+      
+      <div class="example">
+       <pre class="idl">
+{
+  "name":"WoT Pi",
+  “description”: “A WoT-connected Raspberry Pi”
+  “properties”: [
+    {
+      “name”: “temperature”,
+      “type”: “integer”,
+      “unit”: “celcius”,
+      “description”: “An ambient temperature sensor”
+      “href”: “/things/pi/temperature”
+    },
+    {
+      “name”: “humidity”,
+      “type”: “integer”,
+      “unit”: “percent”,
+      “href”: “/things/pi/humidity
+    },
+    {
+      “name”: “led”,
+      “type”: “boolean”,
+      “description”: “A red LED”,
+      “href”: “/things/pi/led”
+    } 
+  ],
+  “actions”: [
+    {
+      “name”: “reboot”
+      “description”: “Reboot the device”
+    }
+  ]
+}
+      </pre>
+     </div>
+    </section>
+  </body>
+</html>
