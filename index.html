@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset='utf-8'>
-    <title>Web of Things</title>
+    <title>Web Thing API</title>
     <script
      src='https://www.w3.org/Tools/respec/respec-w3c-common'
      class='remove'></script>
@@ -16,14 +16,31 @@
           w3cid: 51527
         }],
         processVersion: 2015,
-        edDraftURI: "https://docs.google.com/document/d/1Cr4IGTdzwWN_UrMjwemTwXz3VmJD4X57ljZh2NaaADg/edit?usp=sharing",
-        shortName: "WoT"
+        edDraftURI: "https://moziot.github.io/wot/",
+        shortName: "WoT",
+        overrideCopyright: 'Copyright © 2017 Mozilla'
       };
     </script>
+    <style>
+    table {
+      width: 100%;
+      border: solid 1px #005A9C;
+      border-collapse: collapse;
+    }
+    th {
+      background-color: #005A9C;
+      color: white;
+    }
+    td, th {
+      border: solid 1px #005A9C;
+      padding: 4px;
+    }
+    </style>
   </head>
   <body>
     <section id='abstract'>
-      <p>This document describes a common data model and REST API for the Web of Things. The Thing Description provides a vocabularly for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding. The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state.</p>
+      <p>This document describes a common data model and a REST API for the Web of Things. The Thing Description provides a vocabulary for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding. The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state. A default HTTP + WebSockets binding of the Web Thing API is included in this specification.</p>
+      <p>In addition to this specification there is a note on <a href="#">Web Thing API Protocol Bindings</a> which proposes non-normative bindings of the Web Thing API to various existing IoT protocols. There is also a document describing <a href="#">Web of Things Integration Patterns</a> which provides advice on different design patterns for integrating connected devices with the Web of Things, and where each pattern is most appropriate.</p>
     </section>
     <section id='sotd'>
       <p>
@@ -33,24 +50,25 @@
     <section>
       <h2>Introduction</h2>
       <p>The goal of the Web of Things is to extend the web of pages into a web of things by giving connected devices URLs on the World Wide Web. This will allow the web to be used as a unifying application layer for a decentralized Internet of Things.</p>
-      <p>Whilst web technologies are already in widespread use on the Internet of Things, this is currently done with mostly proprietary data formats and APIs which require per-vendor integrations to make devices interoperable. In order to promote ad-hoc interoperability on the Internet of Things a shared vocabularly and common API is needed.</p>
+      <p>Whilst web technologies are already in widespread use on the Internet of Things, this is currently done with mostly proprietary data formats and APIs which require per-vendor integrations to make devices interoperable. In order to promote ad-hoc interoperability on the Internet of Things a shared vocabulary and common API is needed.</p>
       <p>In this document we propose a common data model and REST API for the Web of Things.</p>
     </section>
     <section>
       <h2>Web Thing Description</h2>
-      <p>The Thing Description provides a vocabularly for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding.</p>
+      <p>The Thing Description provides a vocabulary for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding.</p>
       <p><strong>Example</strong></p>
       <div class="example">
         <pre>
 {
   "name":"WoT Pi",
-  "description": "A WoT-connected Raspberry Pi"
+  "type": "thing",
+  "description": "A WoT-connected Raspberry Pi",
   "properties": [
     {
       "name": "temperature",
       "type": "integer",
-      "unit": "celcius",
-      "description": "An ambient temperature sensor"
+      "unit": "celsius",
+      "description": "An ambient temperature sensor",
       "href": "/things/pi/temperature"
     },
     {
@@ -68,8 +86,14 @@
   ],
   "actions": [
     {
-      "name": "reboot"
+      "name": "reboot",
       "description": "Reboot the device"
+    }
+  ],
+  "events": [
+    {
+      "name": "reboot",
+      "description": "Going down for reboot"
     }
   ]
 }
@@ -78,45 +102,82 @@
 
       <section>
         <h3><code>name</code> member</h3>
+        <p>The name member is a user friendly string which describes the device. This can be set to any value by the device creator and may include a brand name or model number.</p>
+      </section>
+      <section>
+        <h3><code>type</code> member</h3>
+        <p>The type member defines the type of device described by the Thing Description. See "Device Types" for possible values.</p>
+        <div class="note">In future a mechanism may be put in place to allow this property to be extended with additional names not described in this specification using a schema based system.</div>
       </section>
       <section>
         <h3><code>description</code> member</h3>
+        <p>The description member is a user friendly string which describes the device and its functions. This can be set to any value by the device creator.</p>
       </section>
       <section>
         <h3><code>properties</code> member</h3>
+        <p>The properties member is a list of property objects which describe the attributes of the device.</p>
       </section>
       <section>
         <h3><code>actions</code> member</h3>
+        <p>The actions member is a list of action objects which describe functions that can be carried out on a device. Actions are used when the setting of properties is not sufficient to affect a required change in state. This may be used to describe a function which manipulates multiple properties or accepts arguments and has a different effect depending on which arguments are provided. An example might include a "reboot" action which power cycles a device.</p>
+      </section>
+      <section>
+        <h3><code>events</code> member</h3>
+        <p>The events member is a list of event objects which define the types of events which may be emitted by a device. Events can be used where subscribing to a change in property state is not sufficient. This may be used to monitor changes in multiple properties or events which describe something other than a property change. An example might be an event which is emitted when a device is about to reboot.</p>
+      </section>
+      <section>
+        <h3><code>Property</code> object</h3>
+        <p>A property object describes an attribute of a Thing. A property description may include its name, type, unit, description and URL.</p>
+      </section>
+      <section>
+        <h3><code>Action</code> object</h3>
+        <p>An action object describes a function which can be carried out on a device. An action description may include an action name and a user friendly description which describes what the action does. It may also include function arguments.</p>
+      </section>
+      <section>
+        <h3><code>Event</code> object</h3>
+        <p>An event object describes a type of event which may be emitted by a device. This may include an event name, a user friendly description which describes what the event means, and the type of values which may be included in the event.</p>
       </section>
       <section>
         <h3>Alternative Encodings</h3>
+        <p>The default encoding for the Thing description is JSON, but other encodings such as XML, JSON-LD or CBOR may be used. Alternative encodings are beyond the scope of this specification but may be defined separately.</p>
+        <p>References to alternative available encodings may be provided using Link HTTP response headers with the alternate link relation. A client can express a preference for an alternative encoding using HTTP content negotiation.</p>
       </section>
       <section>
         <h3>Semantic Extensions</h3>
+        <div class="note">In future a mechanism may be defined to add semantic extensions to a Thing Description which go beyond the taxonomy described in this specification.</div>
       </section>
     </section>
     <section>
       <h2>Web Thing API</h2>
-        <p>The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state.</p>
+        <p>The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state. A default HTTP + WebSockets protocol binding is defined here.</p>
+        <p>The Web Thing API consists of a number of different types of resources which represent different aspects of a device and can be independently referenced by a URL. The specific URLs and URL structure of resources are defined by the author of a Thing Description using a <a href="https://en.wikipedia.org/wiki/HATEOAS">HATEOAS</a> approach. This specification does <strong>not</strong> define a fixed URL structure.</p>
       <section>
-        <h3>Thing Resource</h3>
+        <h3><code>Thing</code> resource</h3>
+        <p>A Thing Resource provides a Thing Description of a device including its name, type, description, properties, actions and events. A Thing Resource is considered the root resource of a Thing.</p>
+        <p>A Thing description is usually read only. An HTTP GET request can be used to retrieve a Thing Description for a Thing.</p>
         <p><strong>Example: Get a description of a Thing</strong></p>
-        <em>Request</em>
         <div class="example">
-          <pre>GET http://mythingserver.com/things/pi</pre>
+          <div class="example-title marker">
+            <span>Request</span>
+          </div>
+          <pre>GET http://mythingserver.com/things/pi
+Accept: application/json</pre>
         </div>
-        <em>Response</em>
         <div class="example">
+          <div class="example-title marker">
+            <span>Response</span>
+          </div>
           <pre>200 OK
 {
   "name":"WoT Pi",
-  "description": "A WoT-connected Raspberry Pi"
+  "type": "thing",
+  "description": "A WoT-connected Raspberry Pi",
   "properties": [
     {
       "name": "temperature",
       "type": "integer",
-      "unit": "celcius",
-      "description": "An ambient temperature sensor"
+      "unit": "celsius",
+      "description": "An ambient temperature sensor",
       "href": "/things/pi/temperature"
     },
     {
@@ -134,89 +195,406 @@
   ],
   "actions": [
     {
-      "name": "reboot"
+      "name": "reboot",
       "description": "Reboot the device"
+    }
+  ],
+  "events": [
+    {
+      "name": "reboot",
+      "description": "Going down for reboot"
+    }
+  ]
+}</pre>
+        </div>
+    </section>
+    <section>
+      <h3><code>Property</code> resource</h3>
+      <p>A property resource represents a property of a device. Some property resources may be read only and some may be writable. The value of a property can be retrieved with an HTTP GET request and updated with an HTTP PUT request. Changes in the value of a property can also be subscribed to by upgrading an HTTP request to a WebSocket.</p>
+      <p><strong>Example: Get a property</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>GET http://mythingserver.com/things/pi/temperature
+Accept: application/json</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>200 OK
+{
+"temperature": "21"
+}</pre>
+      </div>
+      <p><strong>Example: Set a property</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>PUT http://mythingserver.com/things/pi/led
+{
+"led": true
+}
+Accept: application/json</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>200 OK</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>Actions</code> resource</h3>
+      <p>An actions resource represents a queue of actions to be executed on a device. A new action is created in the queue with an HTTP POST request and can be deleted from the queue with an HTTP DELETE request. The current status of an action request can be retrieved with an HTTP GET request and updated with an HTTP PUT request.</p>
+      <p><strong>Example: Request an action</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>POST http://mythingserver.com/things/pi/actions
+{
+"name": "reboot"
+}
+Accept: application/json</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>201 Created
+{
+"name": "reboot"
+"href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655"
+}</pre>
+      </div>
+      <p><strong>Example: Get a list of action requests</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>GET /things/pi/actions
+Accept: application/json</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>200 OK
+[
+{
+  "name": "reboot",
+  "href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655",
+  "timeRequested": "2017-01-25T15:01:35+00:00",
+  "status": "pending"
+},
+{
+  "name": "reboot"
+  "href": "/things/pi/actions/153e3567-e89b-12a3-a456-426351",
+  "timeRequested": "2017-01-24T11:02:45+00:00",
+  "timeCompleted": "2017-01-24T11:02:46+00:00",
+  "status": "completed"
+}
+]</pre>
+      </div>
+      <p><strong>Example: Get an action request</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>GET /things/pi/actions/123e4567-e89b-12d3-a456-426655
+Accept: application/json</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>200 OK
+{
+  "name": "reboot"
+  "href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655",
+  "timeRequested": "2017-01-25T15:01:35+00:00",
+  "status": "pending"
+}</pre>
+      </div>
+      <p><strong>Example: Cancel an action request</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>DELETE /things/pi/actions/123e4567-e89b-12d3-a456-426655</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>204 No Content
+</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>Events</code> resource</h3>
+      <p>An events resource provides a list of events emitted by a device. An events resource is usually read only. New events can be subscribed to by upgrading an HTTP request to a WebSocket.</p>
+      <p><strong>Example: Get a list of events</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>GET /things/pi/events
+Accept: application/json</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>200 OK
+[
+{
+  "name": "reboot",
+  "description": "Going down for reboot",
+  "time": "2017-01-25T15:01:35+00:00"
+},
+{
+  "name": "reboot",
+  "description": "Going down for reboot",
+  "time": "2017-01-24T13:02:45+00:00"
+}
+]
+</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>Things</code> resource</h3>
+      <p>A things resource represents a collection of Things exposed by a particular Web of Things server.</p>
+      <p><strong>Example: Get a list of things</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>GET /things
+Accept: application/json</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>200 OK
+[
+{
+  "name":"WoT Pi",
+  "type": "thing",
+  "href": "/things/pi",
+  "description": "A WoT-connected Raspberry Pi",
+  "properties": [
+    {
+      "name": "temperature",
+      "type": "integer",
+      "unit": "celsius",
+      "description": "An ambient temperature sensor",
+      "href": "/things/pi/temperature"
+    },
+    {
+      "name": "humidity",
+      "type": "integer",
+      "unit": "percent",
+      "href": "/things/pi/humidity"
+    },
+    {
+      "name": "led",
+      "type": "boolean",
+      "description": "A red LED",
+      "href": "/things/pi/led"
+    }
+  ],
+  "actions": [
+    {
+    "name": "reboot",
+      "description": "Reboot the device"
+    }
+  ],
+  "events": [
+    {
+      "name": "reboot",
+      "description": "Going down for reboot"
     }
   ]
 }
-          </pre>
+]</pre>
+      </div>
+    </section>
+    <section>
+      <h3>Subscriptions with WebSockets</h3>
+      <p><a href="https://tools.ietf.org/html/rfc6455">WebSocket</a> connections can be used to subscribe to events and property state changes.</p>
+      <p><strong>Example: Subscribe to property changes</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
         </div>
+        <pre>GET ws://mythingserver.com/things/pi/temperature
+Origin: mythingserver.com
+Connection: Upgrade
+Host: mythingserver.com
+Upgrade: websocket</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>HTTP 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          onmessage
+        </div>
+        <pre>{
+"temperature": "21"
+}</pre>
+      </div>
+      <p><strong>Example: Subscribe to events</strong></p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>GET ws://mythingserver.com/things/pi/events
+Origin: mythingserver.com
+Connection: Upgrade
+Host: mythingserver.com
+Upgrade: websocket</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>HTTP 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          onmessage
+        </div>
+        <pre>{
+"name": "reboot",
+"description": "Going down for reboot",
+}</pre>
+      </div>
+    </section>
+    <section>
+      <h3>Alternative Protocol Bindings</h3>
+      <p>The default protocol binding for the Web Thing API is HTTP + WebSockets. Bindings to alternative application protocols (e.g. CoAP) may be used, but these bindings are beyond the scope of this specification. A Web Thing API protocol binding may also be layered on top of a non-Internet application protocol by use of a gateway.</p>
+      <p>Guidance for both types of bindings is provided in a separate note called <a href="#">Web Thing API Protocol Bindings</a>.</p>
+      <p>References to available alternative protocol bindings may be provided in HTTP responses using an Alt-Svc HTTP response header.</p>
+    </section>
+  </section>
+  <section>
+    <h2>Thing Types</h2>
+      <p>This specification defines a set of common device types which can be used in a Thing Description. This list is not intended to be exhaustive, but defines a core set of built in types which can be mapped to device types in existing underlying IoT protocols, using non-normative protocol bindings.</p>
+      <div class="note">In future a mechanism may be put in place to extend the possible device types using a schema system (e.g. JSON Schemas), so that additional device types can be provided in a decentralized manner.</div>
+      <section>
+        <h3><code>thing</code> type</h3>
+        <p>The default device type of "thing" can be used when no more specific device type is more appropriate. The only mandatory fields for a Thing Description of this type are the "name" and “type” fields.</p>
+        <p><strong>Fields</strong></p>
+        <table>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Values</th>
+            <th>Required</th>
+          </tr>
+          <tr>
+            <td><strong><code>name</code></strong></td>
+            <td>String</td>
+            <td>Any</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td><strong><code>type</code></strong></td>
+            <td>String</td>
+            <td><code>"thing"</code></td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td><strong><code>description</code></strong></td>
+            <td>String</td>
+            <td>Any</td>
+            <td>No</td>
+          </tr>
+        </table>
+        <h3>
       </section>
       <section>
-        <h3>Properties Resource</h3>
-        <p><strong>Example: Get a temperature value</strong></p>
-        <em>Request</em>
-        <div class="example">
-          <pre>GET http://mythingserver.com/things/pi/temperature</pre>
-        </div>
-        <em>Response</em>
-        <div class="example">
-          <pre>
-200 OK
-{
-  "name": "temperature"
-  "type": "integer"
-  "unit": "celcius"
-  "value": 21
-}
-          </pre>
-        </div>
-        <p><strong>Example: Turn on an LED</strong></p>
-        <em>Request</em>
-        <div class="example">
-          <pre>
-PUT http://mythingserver.com/things/pi/led
-{
-  "name": "led",
-  "type": "boolean",
-  "value": true
-}
-          </pre>
-        </div>
-        <em>Response</em>
-        <div class="example">
-          <pre>
-200 OK
-{
-  "name": "led",
-  "type": "boolean",
-  "value": true
-}
-          </pre>
-        </example>
+        <h3><code>onOffSwitch</code> type</h3>
+        <p>On/Off Switch is a generic device type for actuators with a boolean on/off state. This may be used for smart plugs and light switches for example.</p>
+        <p><strong>Fields</strong></p>
+        <table>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Values</th>
+            <th>Required</th>
+          </tr>
+          <tr>
+            <td><strong><code>name</code></strong></td>
+            <td>String</td>
+            <td>Any</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td><strong><code>type</code></strong></td>
+            <td>String</td>
+            <td><code>"onOffSwitch"</code></td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td><strong><code>description</code></strong></td>
+            <td>String</td>
+            <td>Any</td>
+            <td>No</td>
+          </tr>
+        </table>
+        <p><strong>Properties</strong></p>
+        <table>
+          <tr>
+            <th>Property</th>
+            <th>Type</th>
+            <th>Values</th>
+            <th>Required</th>
+          </tr>
+          <tr>
+            <td><strong><code>on</code></strong></td>
+            <td>Boolean</td>
+            <td><code>true</code>&#x2F;<code>false</code></td>
+            <td>Yes</td>
+          </tr>
+        </table>
+        <p><strong>Actions</strong></p>
+        <table>
+          <tr>
+            <th>Action</th>
+            <th>Arguments</th>
+            <th>Description</th>
+            <th>Required</th>
+          </tr>
+          <tr>
+            <td><strong><code>toggle</code></strong></td>
+            <td>None</td>
+            <td>Toggles boolean on/off state.</td>
+            <td>No</td>
+          </tr>
+        </table>
+        <h3>
       </section>
-      <section>
-        <h3>Actions Resource</h3>
-        <p><strong>Example: Reboot a device</strong></p>
-        <p>Action resources are POSTed to an actions queue to be executed.</p>
-        <em>Request</em>
-        <div class="example">
-          <pre>
-
-POST http://mythingserver.com/actions
-{
-  "name": "reboot"
-}
-          </pre>
-        </div>
-
-        <em>Response</em>
-        <div class="example">
-          <pre>
-201 CREATED
-{
-  "name": "reboot"
-  "href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655"
-}
-          </pre>
-        </div>
-      </section>
-      <section>
-        <h3>Things Resource</h3>
-      </section>
-      <section>
-        <h3>Subscriptions with WebSockets</h3>
-      </section>
+    </section>
+    <section>
+      <h2>Further Information</h2>
+      <p><a href="#">Web Thing API Protocol Bindings</a><br />
+      Proposed non-normative bindings of the Web Thing API to various existing IoT protocols.</p>
+      <p><a href="#">Web of Things Integration Patterns</a><br />
+Advice on different design patterns for integrating connected devices with the Web of Things.</p>
     </section>
   </body>
 </html>
