@@ -63,40 +63,35 @@
   "name":"WoT Pi",
   "type": "thing",
   "description": "A WoT-connected Raspberry Pi",
-  "properties": [
-    {
-      "name": "temperature",
-      "type": "integer",
+  "properties": {
+    "temperature": {
+      "type": "number",
       "unit": "celsius",
       "description": "An ambient temperature sensor",
-      "href": "/things/pi/temperature"
+      "href": "/things/pi/properties/temperature"
     },
-    {
-      "name": "humidity",
-      "type": "integer",
+    "humidity": {
+      "type": "number",
       "unit": "percent",
-      "href": "/things/pi/humidity"
+      "href": "/things/pi/properties/humidity"
     },
-    {
-      "name": "led",
-      "type": "boolean",
+    "led": {
+      "type": "boolean"
       "description": "A red LED",
-      "href": "/things/pi/led"
+      "href": "/things/pi/properties/led"
     }
-  ],
-  "actions": [
-    {
-      "name": "reboot",
+  },
+  "actions": {
+    "reboot": {
       "description": "Reboot the device"
     }
-  ],
-  "events": [
-    {
-      "name": "reboot",
+  },
+  "events": {
+    "reboot": {
       "description": "Going down for reboot"
     }
-  ]
-}
+  }
+}v
         </pre>
       </div>
 
@@ -115,27 +110,27 @@
       </section>
       <section>
         <h3><code>properties</code> member</h3>
-        <p>The properties member is a list of property objects which describe the attributes of the device.</p>
+        <p>The properties member is a map of property objects which describe the attributes of the device.</p>
       </section>
       <section>
         <h3><code>actions</code> member</h3>
-        <p>The actions member is a list of action objects which describe functions that can be carried out on a device. Actions are used when the setting of properties is not sufficient to affect a required change in state. This may be used to describe a function which manipulates multiple properties or accepts arguments and has a different effect depending on which arguments are provided. An example might include a "reboot" action which power cycles a device.</p>
+        <p>The actions member is a map of action objects which describe functions that can be carried out on a device. Actions are used when the setting of properties is not sufficient to affect a required change in state. This may be used to describe a function which manipulates multiple properties or accepts arguments and has a different effect depending on which arguments are provided. An example might include a "reboot" action which power cycles a device.</p>
       </section>
       <section>
         <h3><code>events</code> member</h3>
-        <p>The events member is a list of event objects which define the types of events which may be emitted by a device. Events can be used where subscribing to a change in property state is not sufficient. This may be used to monitor changes in multiple properties or events which describe something other than a property change. An example might be an event which is emitted when a device is about to reboot.</p>
+        <p>The events member is a map of event objects which define the types of events which may be emitted by a device. Events can be used where subscribing to a change in property state is not sufficient. This may be used to monitor changes in multiple properties or events which describe something other than a property change. An example might be an event which is emitted when a device is about to reboot.</p>
       </section>
       <section>
         <h3><code>Property</code> object</h3>
-        <p>A property object describes an attribute of a Thing. A property description may include its name, type, unit, description and URL.</p>
+        <p>A property object describes an attribute of a Thing and is indexed by a property name. A property description may include its type, unit, description and URL.</p>
       </section>
       <section>
         <h3><code>Action</code> object</h3>
-        <p>An action object describes a function which can be carried out on a device. An action description may include an action name and a user friendly description which describes what the action does. It may also include function arguments.</p>
+        <p>An action object describes a function which can be carried out on a device. An action description may include action parameters and a human friendly description which describes what the action does.</p>
       </section>
       <section>
         <h3><code>Event</code> object</h3>
-        <p>An event object describes a type of event which may be emitted by a device. This may include an event name, a user friendly description which describes what the event means, and the type of values which may be included in the event.</p>
+        <p>An event object describes a type of event which may be emitted by a device. This may include the type of values which may be included in the event and a human friendly description which describes what the event means.</p>
       </section>
       <section>
         <h3>Alternative Encodings</h3>
@@ -172,39 +167,34 @@ Accept: application/json</pre>
   "name":"WoT Pi",
   "type": "thing",
   "description": "A WoT-connected Raspberry Pi",
-  "properties": [
-    {
-      "name": "temperature",
-      "type": "integer",
+  "properties": {
+    "temperature": {
+      "type": "number",
       "unit": "celsius",
       "description": "An ambient temperature sensor",
-      "href": "/things/pi/temperature"
+      "href": "/things/pi/properties/temperature"
     },
-    {
-      "name": "humidity",
-      "type": "integer",
+    "humidity": {
+      "type": "number",
       "unit": "percent",
-      "href": "/things/pi/humidity"
+      "href": "/things/pi/properties/humidity"
     },
-    {
-      "name": "led",
+    "led": {
       "type": "boolean",
       "description": "A red LED",
-      "href": "/things/pi/led"
+      "href": "/things/pi/properties/led"
     }
-  ],
-  "actions": [
-    {
-      "name": "reboot",
+  },
+  "actions": {
+    "reboot": {
       "description": "Reboot the device"
     }
-  ],
-  "events": [
-    {
-      "name": "reboot",
+  },
+  "events": {
+    "reboot": {
       "description": "Going down for reboot"
     }
-  ]
+  }
 }</pre>
         </div>
     </section>
@@ -216,7 +206,7 @@ Accept: application/json</pre>
         <div class="example-title marker">
           Request
         </div>
-        <pre>GET http://mythingserver.com/things/pi/temperature
+        <pre>GET http://mythingserver.com/things/pi/properties/temperature
 Accept: application/json</pre>
       </div>
       <div class="example">
@@ -225,7 +215,7 @@ Accept: application/json</pre>
         </div>
         <pre>200 OK
 {
-"temperature": "21"
+"temperature": 21
 }</pre>
       </div>
       <p><strong>Example: Set a property</strong></p>
@@ -233,7 +223,7 @@ Accept: application/json</pre>
         <div class="example-title marker">
           Request
         </div>
-        <pre>PUT http://mythingserver.com/things/pi/led
+        <pre>PUT http://mythingserver.com/things/pi/properties/led
 {
 "led": true
 }
@@ -385,41 +375,35 @@ Accept: application/json</pre>
 {
   "name":"WoT Pi",
   "type": "thing",
-  "href": "/things/pi",
   "description": "A WoT-connected Raspberry Pi",
-  "properties": [
-    {
-      "name": "temperature",
-      "type": "integer",
+  "properties": {
+    "temperature": {
+      "type": "number",
       "unit": "celsius",
       "description": "An ambient temperature sensor",
-      "href": "/things/pi/temperature"
+      "href": "/things/pi/properties/temperature"
     },
-    {
-      "name": "humidity",
-      "type": "integer",
+    "humidity": {
+      "type": "number",
       "unit": "percent",
-      "href": "/things/pi/humidity"
+      "href": "/things/pi/properties/humidity"
     },
-    {
-      "name": "led",
-      "type": "boolean",
+    "led": {
+      "type": "boolean"
       "description": "A red LED",
-      "href": "/things/pi/led"
+      "href": "/things/pi/properties/led"
     }
-  ],
-  "actions": [
-    {
-    "name": "reboot",
+  },
+  "actions": {
+    "reboot": {
       "description": "Reboot the device"
     }
-  ],
-  "events": [
-    {
-      "name": "reboot",
+  },
+  "events": {
+    "reboot": {
       "description": "Going down for reboot"
     }
-  ]
+  }
 }
 ]</pre>
       </div>
@@ -451,7 +435,7 @@ Connection: Upgrade</pre>
           onmessage
         </div>
         <pre>{
-"temperature": "21"
+"temperature": 21
 }</pre>
       </div>
       <p><strong>Example: Subscribe to events</strong></p>
