@@ -39,7 +39,7 @@
   </head>
   <body>
     <section id='abstract'>
-      <p>This document describes a common data model and API for the Web of Things. The Thing Description provides a vocabulary for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding. The Web Thing REST API and Web Thing WebSocket API allow a web client to access the properties of devices, request the execution of actions and subscribe to events representing a change in state.</p>
+      <p>This document describes a common data model and API for the Web of Things. The <a href="#web-thing-description">Web Thing Description</a> provides a vocabulary for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding. The <a href="#web-thing-rest-api">Web Thing REST API</a> and <a href="#web-thing-websocket-api">Web Thing WebSocket API</a> allow a web client to access the properties of devices, request the execution of actions and subscribe to events representing a change in state. Some basic <a href="#web-thing-types">Web Thing Types</a> are provided and additional types can be defined using semantic extensions with JSON-LD.</p>
       <p>In addition to this specification there is a note on <a href="#">Web Thing API Protocol Bindings</a> which proposes non-normative bindings of the Web Thing API to various existing IoT protocols. There is also a document describing <a href="#">Web of Things Integration Patterns</a> which provides advice on different design patterns for integrating connected devices with the Web of Things, and where each pattern is most appropriate.</p>
     </section>
     <section id='sotd'>
@@ -108,7 +108,6 @@
       <section>
         <h3><code>type</code> member</h3>
         <p>The type member defines the type of device described by the Thing Description. See "Device Types" for possible values.</p>
-        <div class="note">In future a mechanism may be put in place to allow this property to be extended with additional names not described in this specification using a schema based system.</div>
       </section>
       <section>
         <h3><code>description</code> member</h3>
@@ -146,10 +145,6 @@
         <h3>Alternative Encodings</h3>
         <p>The default encoding for the Thing description is JSON, but other encodings such as XML, JSON-LD or CBOR may be used. Alternative encodings are beyond the scope of this specification but may be defined separately.</p>
         <p>References to alternative available encodings may be provided using Link HTTP response headers with the alternate link relation. A client can express a preference for an alternative encoding using HTTP content negotiation.</p>
-      </section>
-      <section>
-        <h3>Semantic Extensions</h3>
-        <div class="note">In future a mechanism may be defined to add semantic extensions to a Thing Description which go beyond the taxonomy described in this specification.</div>
       </section>
     </section>
     <section>
@@ -567,7 +562,6 @@ Sec-WebSocket-Protocol: webthing</pre>
   <section>
     <h2>Web Thing Types</h2>
       <p>This specification defines a set of common device types which can be used in a Thing Description. This list is not intended to be exhaustive, but defines a core set of built in types which can be mapped to device types in existing underlying IoT protocols, using non-normative protocol bindings.</p>
-      <div class="note">In future a mechanism may be put in place to extend the possible device types using a schema system (e.g. JSON Schemas), so that additional device types can be provided in a decentralized manner.</div>
       <section>
         <h3><code>thing</code> type</h3>
         <p>The default device type of "thing" can be used when no more specific device type is more appropriate. The only mandatory fields for a Thing Description of this type are the "name" and “type” fields.</p>
@@ -661,6 +655,51 @@ Sec-WebSocket-Protocol: webthing</pre>
           </tr>
         </table>
         <h3>
+      </section>
+      <section>
+        <h3>Extensibility with JSON-LD</h3>
+        <p>The Web Thing Description format uses a schema based system which allows anyone to define their own Web Thing types and share them with others in order to encourage interoperability. <a href="https://json-ld.org/">JSON-LD</a> notation is used to add semantic annotations to a Thing Description in order to establish a shared semantic context and define a Web Thing type.</p>
+        <div class="example">
+          <div class="example-title marker">
+            Example
+          </div>
+          <pre>{
+  "@context": "http://iot.schema.org",
+  "@type": "Toaster",
+  "name":"Acme Toaster",
+  "description": "A web connected toaster",
+  "properties": {
+    "on": {
+      "type": "boolean",
+      "description": "Whether the toaster is currently heating bread",
+      "href": "/properties/on"
+    },
+    "timeRemaining": {
+      "type": "number",
+      "unit": "seconds",
+      "href": "/properties/timeRemaining"
+    }
+  },
+  "actions": {
+    "pop": {
+      "description": "Pop up the toast"
+    }
+  },
+  "events": {
+    "ready": {
+      "description": "Your toast is ready!"
+    }
+  },
+  "links": {
+    "properties": "/properties",
+    "actions": "/actions",
+    "events": "/events",
+    "websocket": "wss://toaster.smith.home"
+  }
+}</pre>
+        </div>
+        <p>The <code>@context</code> property provides an IRI which defines a globally unique "context" within which types are defined. The optional <code>@type</code> property specifies a Web Thing type from that context to be applied to the thing being described.</p>
+        <div class="note">When no <code>@context</code> property is supplied, a default Web Thing context is assumed (to be defined) and <code>type</code> is equivalent to <code>@type</code>.</div>
       </section>
     </section>
     <section>
