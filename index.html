@@ -15,7 +15,7 @@
           companyURL: "https://mozilla.com/",
           w3cid: 51527
         }],
-        processVersion: 2015,
+        processVersion: 2017,
         edDraftURI: "https://moziot.github.io/wot/",
         shortName: "WoT",
         overrideCopyright: 'Copyright © 2017 Mozilla'
@@ -39,7 +39,7 @@
   </head>
   <body>
     <section id='abstract'>
-      <p>This document describes a common data model and a REST API for the Web of Things. The Thing Description provides a vocabulary for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding. The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state. A default HTTP + WebSockets binding of the Web Thing API is included in this specification.</p>
+      <p>This document describes a common data model and API for the Web of Things. The Thing Description provides a vocabulary for describing physical devices connected to the World Wide Web in a machine readable format with a default JSON encoding. The Web Thing REST API and Web Thing WebSocket API allow a web client to access the properties of devices, request the execution of actions and subscribe to events representing a change in state.</p>
       <p>In addition to this specification there is a note on <a href="#">Web Thing API Protocol Bindings</a> which proposes non-normative bindings of the Web Thing API to various existing IoT protocols. There is also a document describing <a href="#">Web of Things Integration Patterns</a> which provides advice on different design patterns for integrating connected devices with the Web of Things, and where each pattern is most appropriate.</p>
     </section>
     <section id='sotd'>
@@ -51,7 +51,7 @@
       <h2>Introduction</h2>
       <p>The goal of the Web of Things is to extend the web of pages into a web of things by giving connected devices URLs on the World Wide Web. This will allow the web to be used as a unifying application layer for a decentralized Internet of Things.</p>
       <p>Whilst web technologies are already in widespread use on the Internet of Things, this is currently done with mostly proprietary data formats and APIs which require per-vendor integrations to make devices interoperable. In order to promote ad-hoc interoperability on the Internet of Things a shared vocabulary and common API is needed.</p>
-      <p>In this document we propose a common data model and REST API for the Web of Things.</p>
+      <p>In this document we propose a common data model and API for the Web of Things.</p>
     </section>
     <section>
       <h2>Web Thing Description</h2>
@@ -76,7 +76,7 @@
       "href": "/things/pi/properties/humidity"
     },
     "led": {
-      "type": "boolean"
+      "type": "boolean",
       "description": "A red LED",
       "href": "/things/pi/properties/led"
     }
@@ -90,8 +90,14 @@
     "reboot": {
       "description": "Going down for reboot"
     }
+  },
+  "links": {
+    "properties": "/thing/pi/properties",
+    "actions": "/things/pi/actions",
+    "events": "/things/pi/events",
+    "websocket": "wss://mywebthingserver.com/things/pi"
   }
-}v
+}
         </pre>
       </div>
 
@@ -121,6 +127,10 @@
         <p>The events member is a map of event objects which define the types of events which may be emitted by a device. Events can be used where subscribing to a change in property state is not sufficient. This may be used to monitor changes in multiple properties or events which describe something other than a property change. An example might be an event which is emitted when a device is about to reboot.</p>
       </section>
       <section>
+        <h3><code>links</code> member</h3>
+        <p>The links member provides a map of URLs for Properties, Actions and Events resources. It can also contain a WebSocket URL to be used for the Thing's WebSocket API. Entries in this map have a key which can be one of "properties", "actions", "events" or "websocket" and a string value representing a URL.</p>
+      </section>
+      <section>
         <h3><code>Property</code> object</h3>
         <p>A property object describes an attribute of a Thing and is indexed by a property name. A property description may include its type, unit, description and URL.</p>
       </section>
@@ -143,9 +153,9 @@
       </section>
     </section>
     <section>
-      <h2>Web Thing API</h2>
-        <p>The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and subscribe to events representing a change in state. A default HTTP + WebSockets protocol binding is defined here.</p>
-        <p>The Web Thing API consists of a number of different types of resources which represent different aspects of a device and can be independently referenced by a URL. The specific URLs and URL structure of resources are defined by the author of a Thing Description using a <a href="https://en.wikipedia.org/wiki/HATEOAS">HATEOAS</a> approach. This specification does <strong>not</strong> define a fixed URL structure.</p>
+      <h2>Web Thing REST API</h2>
+        <p>The Web Thing API provides a web services based programming interface with a RESTful design for applications to access the properties of devices, request the execution of actions and access a list of events representing a change in state. A default HTTP protocol binding is defined here.</p>
+        <p>The Web Thing REST API consists of a number of different types of resources which represent different aspects of a device and can be independently referenced by a URL. The specific URLs and URL structure of resources are defined by the author of a Thing Description using a <a href="https://en.wikipedia.org/wiki/HATEOAS">HATEOAS</a> approach. This specification does <strong>not</strong> define a fixed URL structure.</p>
       <section>
         <h3><code>Thing</code> resource</h3>
         <p>A Thing Resource provides a Thing Description of a device including its name, type, description, properties, actions and events. A Thing Resource is considered the root resource of a Thing.</p>
@@ -194,13 +204,19 @@ Accept: application/json</pre>
     "reboot": {
       "description": "Going down for reboot"
     }
+  },
+  "links": {
+    "properties": "/thing/pi/properties",
+    "actions": "/things/pi/actions",
+    "events": "/things/pi/events",
+    "websocket": "wss://mywebthingserver.com/things/pi"
   }
 }</pre>
         </div>
     </section>
     <section>
       <h3><code>Property</code> resource</h3>
-      <p>A property resource represents a property of a device. Some property resources may be read only and some may be writable. The value of a property can be retrieved with an HTTP GET request and updated with an HTTP PUT request. Changes in the value of a property can also be subscribed to by upgrading an HTTP request to a WebSocket.</p>
+      <p>A property resource represents a property of a device. Some property resources may be read only and some may be writable. The value of a property can be retrieved with an HTTP GET request and updated with an HTTP PUT request.</p>
       <p><strong>Example: Get a property</strong></p>
       <div class="example">
         <div class="example-title marker">
@@ -215,7 +231,7 @@ Accept: application/json</pre>
         </div>
         <pre>200 OK
 {
-"temperature": 21
+  "temperature": 21
 }</pre>
       </div>
       <p><strong>Example: Set a property</strong></p>
@@ -225,7 +241,7 @@ Accept: application/json</pre>
         </div>
         <pre>PUT http://mythingserver.com/things/pi/properties/led
 {
-"led": true
+  "led": true
 }
 Accept: application/json</pre>
       </div>
@@ -246,7 +262,7 @@ Accept: application/json</pre>
         </div>
         <pre>POST http://mythingserver.com/things/pi/actions
 {
-"name": "reboot"
+  "name": "reboot"
 }
 Accept: application/json</pre>
       </div>
@@ -256,8 +272,8 @@ Accept: application/json</pre>
         </div>
         <pre>201 Created
 {
-"name": "reboot"
-"href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655"
+  "name": "reboot"
+  "href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655"
 }</pre>
       </div>
       <p><strong>Example: Get a list of action requests</strong></p>
@@ -274,19 +290,19 @@ Accept: application/json</pre>
         </div>
         <pre>200 OK
 [
-{
-  "name": "reboot",
-  "href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655",
-  "timeRequested": "2017-01-25T15:01:35+00:00",
-  "status": "pending"
-},
-{
-  "name": "reboot"
-  "href": "/things/pi/actions/153e3567-e89b-12a3-a456-426351",
-  "timeRequested": "2017-01-24T11:02:45+00:00",
-  "timeCompleted": "2017-01-24T11:02:46+00:00",
-  "status": "completed"
-}
+  {
+    "name": "reboot",
+    "href": "/things/pi/actions/123e4567-e89b-12d3-a456-426655",
+    "timeRequested": "2017-01-25T15:01:35+00:00",
+    "status": "pending"
+  },
+  {
+    "name": "reboot"
+    "href": "/things/pi/actions/153e3567-e89b-12a3-a456-426351",
+    "timeRequested": "2017-01-24T11:02:45+00:00",
+    "timeCompleted": "2017-01-24T11:02:46+00:00",
+    "status": "completed"
+  }
 ]</pre>
       </div>
       <p><strong>Example: Get an action request</strong></p>
@@ -326,7 +342,7 @@ Accept: application/json</pre>
     </section>
     <section>
       <h3><code>Events</code> resource</h3>
-      <p>An events resource provides a list of events emitted by a device. An events resource is usually read only. New events can be subscribed to by upgrading an HTTP request to a WebSocket.</p>
+      <p>An events resource provides a list of events emitted by a device. An events resource is usually read only.</p>
       <p><strong>Example: Get a list of events</strong></p>
       <div class="example">
         <div class="example-title marker">
@@ -341,16 +357,16 @@ Accept: application/json</pre>
         </div>
         <pre>200 OK
 [
-{
-  "name": "reboot",
-  "description": "Going down for reboot",
-  "time": "2017-01-25T15:01:35+00:00"
-},
-{
-  "name": "reboot",
-  "description": "Going down for reboot",
-  "time": "2017-01-24T13:02:45+00:00"
-}
+  {
+    "name": "reboot",
+    "description": "Going down for reboot",
+    "time": "2017-01-25T15:01:35+00:00"
+  },
+  {
+    "name": "reboot",
+    "description": "Going down for reboot",
+    "time": "2017-01-24T13:02:45+00:00"
+  }
 ]
 </pre>
       </div>
@@ -372,110 +388,184 @@ Accept: application/json</pre>
         </div>
         <pre>200 OK
 [
-{
-  "name":"WoT Pi",
-  "type": "thing",
-  "description": "A WoT-connected Raspberry Pi",
-  "properties": {
-    "temperature": {
-      "type": "number",
-      "unit": "celsius",
-      "description": "An ambient temperature sensor",
-      "href": "/things/pi/properties/temperature"
+  {
+    "name":"WoT Pi",
+    "type": "thing",
+    "description": "A WoT-connected Raspberry Pi",
+    "properties": {
+      "temperature": {
+        "type": "number",
+        "unit": "celsius",
+        "description": "An ambient temperature sensor",
+        "href": "/things/pi/properties/temperature"
+      },
+      "humidity": {
+        "type": "number",
+        "unit": "percent",
+        "href": "/things/pi/properties/humidity"
+      },
+      "led": {
+        "type": "boolean",
+        "description": "A red LED",
+        "href": "/things/pi/properties/led"
+      }
     },
-    "humidity": {
-      "type": "number",
-      "unit": "percent",
-      "href": "/things/pi/properties/humidity"
+    "actions": {
+      "reboot": {
+        "description": "Reboot the device"
+      }
     },
-    "led": {
-      "type": "boolean"
-      "description": "A red LED",
-      "href": "/things/pi/properties/led"
-    }
-  },
-  "actions": {
-    "reboot": {
-      "description": "Reboot the device"
-    }
-  },
-  "events": {
-    "reboot": {
-      "description": "Going down for reboot"
+    "events": {
+      "reboot": {
+        "description": "Going down for reboot"
+      }
     }
   }
-}
 ]</pre>
       </div>
     </section>
     <section>
-      <h3>Subscriptions with WebSockets</h3>
-      <p><a href="https://tools.ietf.org/html/rfc6455">WebSocket</a> connections can be used to subscribe to events and property state changes.</p>
-      <p><strong>Example: Subscribe to property changes</strong></p>
-      <div class="example">
-        <div class="example-title marker">
-          Request
-        </div>
-        <pre>GET ws://mythingserver.com/things/pi/temperature
-Origin: mythingserver.com
-Connection: Upgrade
-Host: mythingserver.com
-Upgrade: websocket</pre>
-      </div>
-      <div class="example">
-        <div class="example-title marker">
-          Response
-        </div>
-        <pre>HTTP 101 Switching Protocols
-Upgrade: websocket
-Connection: Upgrade</pre>
-      </div>
-      <div class="example">
-        <div class="example-title marker">
-          onmessage
-        </div>
-        <pre>{
-"temperature": 21
-}</pre>
-      </div>
-      <p><strong>Example: Subscribe to events</strong></p>
-      <div class="example">
-        <div class="example-title marker">
-          Request
-        </div>
-        <pre>GET ws://mythingserver.com/things/pi/events
-Origin: mythingserver.com
-Connection: Upgrade
-Host: mythingserver.com
-Upgrade: websocket</pre>
-      </div>
-      <div class="example">
-        <div class="example-title marker">
-          Response
-        </div>
-        <pre>HTTP 101 Switching Protocols
-Upgrade: websocket
-Connection: Upgrade</pre>
-      </div>
-      <div class="example">
-        <div class="example-title marker">
-          onmessage
-        </div>
-        <pre>{
-"name": "reboot",
-"description": "Going down for reboot",
-}</pre>
-      </div>
-    </section>
-    <section>
       <h3>Alternative Protocol Bindings</h3>
-      <p>The default protocol binding for the Web Thing API is HTTP + WebSockets. Bindings to alternative application protocols (e.g. CoAP) may be used, but these bindings are beyond the scope of this specification. A Web Thing API protocol binding may also be layered on top of a non-Internet application protocol by use of a gateway.</p>
+      <p>The default protocol binding for the Web Thing REST API is HTTP(S). Bindings to alternative application protocols (e.g. CoAP) may be used, but these bindings are beyond the scope of this specification. A Web Thing API protocol binding may also be layered on top of a non-Internet application protocol by use of a gateway.</p>
       <p>Guidance for both types of bindings is provided in a separate note called <a href="#">Web Thing API Protocol Bindings</a>.</p>
       <p>References to available alternative protocol bindings may be provided in HTTP responses using an Alt-Svc HTTP response header.</p>
     </section>
   </section>
   <section>
-    <h2>Thing Types</h2>
+    <h2>Web Thing WebSocket API</h2>
+      <p>The Web Thing WebSocket API complements the REST API to provide a realtime mechanism to make multiple requests and be notified of events as soon as they happen, by keeping a <a href="https://tools.ietf.org/html/rfc6455">WebSocket</a> open on the Web Thing. The "webthing" WebSocket subprotocol defined here has a simple set of message types and a JSON response format consistent with the Web Thing REST API.</p>
+    <section>
+      <h3>Protocol Handshake</h3>
+      <p>To open a WebSocket on a Thing, an HTTP GET request is upgraded to a WebSocket using a standard <a href="https://tools.ietf.org/html/rfc6455">WebSocket protocol</a> handshake and the "webthing" subprotocol. The WebSocket URL for a Web Thing is specified in the links member of the Web Thing Description.</p>
+      <div class="example">
+        <div class="example-title marker">
+          Request
+        </div>
+        <pre>GET wss://mythingserver.com/things/robot
+Host: mythingserver.com
+Origin: https://mythingserver.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==
+Sec-WebSocket-Protocol: webthing
+Sec-WebSocket-Version: 13</pre>
+      </div>
+      <div class="example">
+        <div class="example-title marker">
+          Response
+        </div>
+        <pre>HTTP 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: HSmrc0sMlYUkAGmm5OPpG2HaGWk=
+Sec-WebSocket-Protocol: webthing</pre>
+      </div>
+      <p>A WebSocket can be opened from a web page using the JavaScript <a href="https://www.w3.org/TR/websockets/">WebSocket API</a> which will take care of the handshake detailed above and allow messages to be sent and received.</p>
+      <div class="example">
+        <div class="example-title marker">
+          Example
+        </div>
+        <pre>const socket = new WebSocket('wss://mywebthingserver/things/robot', 'webthing');</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>setProperty</code> message</h3>
+      <p>The <code>setProperty</code> message type is sent from a web client to a Web Thing in order to set the value of one or more of its properties. This is equivalent to a <code>PUT</code> request on a Property resource URL using the REST API, but with the WebSocket API a property value can be changed multiple times in quick succession over an open socket and multiple properties can be set at the same time.</p>
+      <div class="example">
+        <div class="example-title marker">
+          Example
+        </div>
+        <pre>{
+  "messageType": "setProperty",
+  "data": {
+    "leftMotor": 100
+  }
+}</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>requestAction</code> message</h3>
+      <p>The <code>requestAction</code> message type is sent from a web client to a Web Thing to request an action be carried out on a Web Thing. This is equivalent to a <code>POST</code> request on an Actions resource URL using the REST API, but multiple actions can be requested at the same time or in quick succession over an open socket.</p>
+      <div class="example">
+        <div class="example-title marker">
+          Example
+        </div>
+        <pre>{
+  "messageType": "requestAction",
+  "data": {
+    "goForward": {},
+  }
+}</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>addEventSubscription</code> message</h3>
+      <p>The <code>addEventSubscription</code> message type is sent from a web client to a Web Thing to allow a client to subscribe to a particular event type, defined by the <code>events</code> member of a Web Thing description. This is similar to adding an event listener in JavaScript, but events are received as an <code>event</code> message over the Web Thing WebSocket API.</p>
+      <div class="example">
+        <div class="example-title marker">
+          Example
+        </div>
+        <pre>{
+  "messageType": "addEventSubscription",
+  "data": {
+    "motion": {}
+  }
+}</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>propertyStatus</code> message</h3>
+      <p>The <code>propertyStatus</code> message type is sent from a Web Thing to a web client whenever a property of a Web Thing changes. The payload data of this message is in the same format as a response to a <code>GET</code> request on Property resource using the REST API, but the message is pushed to the client whenever a property changes and can include multiple properties at the same time.
+      <div class="example">
+        <div class="example-title marker">
+          Example
+        </div>
+        <pre>{
+  "messageType": "propertyStatus",
+  "data": {
+    "led": true
+  }
+}</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>actionStatus</code> message</h3>
+      <p>The <code>actionStatus</code> message type is sent from a Web Thing to a web client when the status of a requested action changes. The payload data is consistent with the format of an Action resource in the REST API, but messages are pushed to the client as soon as the status of an action changes.
+      <div class="example">
+        <div class="example-title marker">
+          Example
+        </div>
+        <pre>{
+  "messageType": "actionStatus",
+  "data": {
+    "grab": {
+      "href": "/actions/123e4567-e89b-12d3-a456-426655",
+      "status": "completed"
+    }
+  }
+}</pre>
+      </div>
+    </section>
+    <section>
+      <h3><code>event</code> message</h3>
+      <p>The <code>event</code> message type is sent from a Web Thing to a web client when an event occurs on the Web Thing. The payload data is consistent with the format of an Event resource in the REST API but messages are pushed to the client as soon as an event occurs.
+      <div class="example">
+        <div class="example-title marker">
+          Example
+        </div>
+        <pre>{
+  "messageType": "event",
+  "data": {
+    "motion": {
+      "timestamp": "2017-01-24T13:02:45+00:00"
+    }
+  }
+}</pre>
+      </div>
+    </section>
+  </section>
+  <section>
+    <h2>Web Thing Types</h2>
       <p>This specification defines a set of common device types which can be used in a Thing Description. This list is not intended to be exhaustive, but defines a core set of built in types which can be mapped to device types in existing underlying IoT protocols, using non-normative protocol bindings.</p>
       <div class="note">In future a mechanism may be put in place to extend the possible device types using a schema system (e.g. JSON Schemas), so that additional device types can be provided in a decentralized manner.</div>
       <section>
